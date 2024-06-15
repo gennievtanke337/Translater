@@ -64,12 +64,27 @@ class TranslatorApp(QtWidgets.QWidget):
 
         self.setLayout(self.layout)
 
+        # Винятки для перекладу
+        self.exceptions = {
+            'всім': 'to everyone',
+            'чіл': 'relax',
+            'бульба': 'potato',
+            'бульби': 'potatoes',
+            'бульбу': 'potato',
+            'MGE': 'МГЕ'
+        }
+
     def translate_text(self):
         src_text = self.src_text_box.toPlainText().strip()
         src_lang = self.src_lang_combobox.currentText()
         dest_lang = self.dest_lang_combobox.currentText()
 
         if src_text:
+            # Виконання замін для винятків
+            for word, translation in self.exceptions.items():
+                src_text = src_text.replace(word, translation)
+
+            # Переклад тексту за допомогою API
             translator = Translator(from_lang=src_lang, to_lang=dest_lang)
             translation = translator.translate(src_text)
             self.dest_text_box.setPlainText(translation)
