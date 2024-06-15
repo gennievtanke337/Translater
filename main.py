@@ -102,12 +102,12 @@ class Ui_Form(object):
         self.label_2.setText(_translate("Form", "Текст для перекладу:"))
         self.label_3.setText(_translate("Form", "Мова перекладу"))
         self.comboBox.setItemText(0, _translate("Form", "English(англійська)"))
-        self.comboBox.setItemText(1, _translate("Form", "French(французька)"))
-        self.comboBox.setItemText(2, _translate("Form", "China(китайська)"))
-        self.comboBox.setItemText(3, _translate("Form", "German(німецька)"))
-        self.comboBox.setItemText(4, _translate("Form", "Poland(польська)"))
-        self.comboBox.setItemText(5, _translate("Form", "Spanish(іспанська)"))
-        self.comboBox.setItemText(6, _translate("Form", "Arabic(арабська)"))
+        self.comboBox.setItemText(1, _translate("Form", "В розробці"))
+        self.comboBox.setItemText(2, _translate("Form", "В розробці"))
+        self.comboBox.setItemText(3, _translate("Form", "В розробці"))
+        self.comboBox.setItemText(4, _translate("Form", "В розробці"))
+        self.comboBox.setItemText(5, _translate("Form", "В розробці"))
+        self.comboBox.setItemText(6, _translate("Form", "В розробці"))
 
 
 if __name__ == "__main__":
