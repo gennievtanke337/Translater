@@ -9,6 +9,8 @@
 
 from translate import Translator
 from PyQt5 import QtCore, QtGui, QtWidgets
+from translate import Translator
+from dictionary import *
 
 
 class Ui_Form(object):
@@ -108,6 +110,13 @@ class Ui_Form(object):
         self.comboBox.setItemText(4, _translate("Form", "В розробці"))
         self.comboBox.setItemText(5, _translate("Form", "В розробці"))
         self.comboBox.setItemText(6, _translate("Form", "В розробці"))
+
+verticalLayoutWidget_3 = Translator(from_lang='uk', to_lang='en')
+res = 'plainTextEdit_2'
+
+
+
+             
 
 
 if __name__ == "__main__":
