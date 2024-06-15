@@ -66,12 +66,64 @@ class TranslatorApp(QtWidgets.QWidget):
 
         # Винятки для перекладу
         self.exceptions = {
-            'всім': 'to everyone',
-            'чіл': 'relax',
-            'бульба': 'potato',
-            'бульби': 'potatoes',
-            'бульбу': 'potato',
-            'MGE': 'МГЕ'
+            'en': {
+                'everyone': 'всім',
+                'relax': 'чіл',
+                'potato': 'бульба',
+                'potatoes': 'бульби',
+                'movie': 'фільм',
+                'funny': 'смішно',
+                'a lot': 'багато',
+                'my friend': 'мій друже',
+                'good afternoon': 'добрий день',
+                'house': 'будинок',
+                'school': 'школа',
+                'child': 'дитина',
+                'man': 'чоловік',
+                'woman': 'жінка',
+                'work': 'робота',
+                'car': 'машина'
+                # Додайте більше винятків за потребою
+            },
+            'uk': {
+                'всім': 'everyone',
+                'чіл': 'relax',
+                'бульба': 'potato',
+                'бульби': 'potatoes',
+                'фільм': 'movie',
+                'смішно': 'funny',
+                'багато': 'a lot',
+                'мій друже': 'my friend',
+                'добрий день': 'good afternoon',
+                'будинок': 'house',
+                'школа': 'school',
+                'дитина': 'child',
+                'чоловік': 'man',
+                'жінка': 'woman',
+                'робота': 'work',
+                'машина': 'car'
+                # Додайте більше винятків за потребою
+            },
+            'ru': {
+                'всем': 'everyone',
+                'отдыхать': 'relax',
+                'картофель': 'potato',
+                'картофелины': 'potatoes',
+                'фильм': 'movie',
+                'смешно': 'funny',
+                'много': 'a lot',
+                'мой друг': 'my friend',
+                'добрый день': 'good afternoon',
+                'дом': 'house',
+                'школа': 'school',
+                'ребенок': 'child',
+                'мужчина': 'man',
+                'женщина': 'woman',
+                'работа': 'work',
+                'машина': 'car'
+                # Додайте більше винятків за потребою
+            },
+            # Додайте винятки для інших мов за потребою
         }
 
     def translate_text(self):
@@ -81,8 +133,14 @@ class TranslatorApp(QtWidgets.QWidget):
 
         if src_text:
             # Виконання замін для винятків
-            for word, translation in self.exceptions.items():
-                src_text = src_text.replace(word, translation)
+            if src_lang in self.exceptions and dest_lang in self.exceptions:
+                src_exceptions = self.exceptions[src_lang]
+                dest_exceptions = self.exceptions[dest_lang]
+
+                for word, translation in src_exceptions.items():
+                    src_text = src_text.replace(word, translation)
+                for word, translation in dest_exceptions.items():
+                    src_text = src_text.replace(translation, word)
 
             # Переклад тексту за допомогою API
             translator = Translator(from_lang=src_lang, to_lang=dest_lang)
