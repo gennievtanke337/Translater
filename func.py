@@ -10,7 +10,7 @@ class TranslatorApp:
         # Темна тема
         self.dark_mode = tk.BooleanVar()
         self.style = ttk.Style()
-        self.style.theme_use('alt')  # Використовуємо стандартну тему clam
+        self.style.theme_use('clam')  # Використовуємо стандартну тему clam
         self.set_theme()
 
         # Мови
@@ -50,6 +50,20 @@ class TranslatorApp:
         # Вибір теми
         ttk.Checkbutton(root, text="Темна тема", variable=self.dark_mode, command=self.set_theme).pack(pady=(10, 0))
 
+        # Меню
+        menubar = tk.Menu(root)
+        root.config(menu=menubar)
+        view_menu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label="Вид", menu=view_menu)
+        view_menu.add_command(label="Повноекранний режим", command=self.toggle_fullscreen)
+        view_menu.add_command(label="Вихід з повноекранного режиму", command=self.quit_fullscreen)
+
+        # Встановлюємо початковий режим вікна
+        self.fullscreen = False
+
+        # Обробник клавіш Escape
+        root.bind('<Escape>', lambda event: self.quit_fullscreen())
+
     def set_theme(self):
         theme = 'clam' if not self.dark_mode.get() else 'default'
         self.style.theme_use(theme)
@@ -71,6 +85,14 @@ class TranslatorApp:
                 messagebox.showerror("Помилка", "Не вдалося отримати переклад. Спробуйте ще раз пізніше.")
         else:
             messagebox.showwarning("Попередження", "Будь ласка, введіть текст і виберіть мови.")
+
+    def toggle_fullscreen(self):
+        self.root.attributes('-fullscreen', True)
+        self.fullscreen = True
+
+    def quit_fullscreen(self, event=None):
+        self.root.attributes('-fullscreen', False)
+        self.fullscreen = False
 
 if __name__ == "__main__":
     root = tk.Tk()
