@@ -1,15 +1,27 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, filedialog
+from PIL import Image, ImageTk
 import requests
 
 class TranslatorApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Перекладач")
-        
-        # Теми
-        self.themes = ['clam', 'alt', 'default', 'classic', 'vista']
+
+        # Тема
+        self.themes = ['clam', 'alt', 'default', 'classic', 'vista', 'xpnative']
         self.current_theme = tk.StringVar(value=self.themes[0])
+
+        # Роздільні здатності
+        self.resolutions = {
+            '800x600': (800, 600),
+            '1024x768': (1024, 768),
+            '1280x800': (1280, 800),
+            '1366x768': (1366, 768),
+            '1920x1080': (1920, 1080)
+        }
+        self.current_resolution = tk.StringVar(value='800x600')
+        self.width, self.height = self.resolutions[self.current_resolution.get()]
 
         # Мови інтерфейсу
         self.interface_languages = {
@@ -18,12 +30,10 @@ class TranslatorApp:
         }
         self.current_language = tk.StringVar(value='uk')
         self.texts = self.get_texts('uk')
-        
-        # Темна тема
-        self.dark_mode = tk.BooleanVar()
+
+        # Стиль
         self.style = ttk.Style()
         self.style.theme_use(self.current_theme.get())
-        self.set_theme()
 
         # Мови перекладу
         self.languages = {
@@ -39,12 +49,15 @@ class TranslatorApp:
             'Українська': 'uk',
             'Португальська': 'pt',
         }
-        
+
         # Віджети
         self.create_widgets()
-        
+
         # Обробник клавіш Escape
         root.bind('<Escape>', lambda event: self.quit_fullscreen())
+
+        # Вибрати вкладку перекладу при запуску
+        self.notebook.select(self.translation_tab)
 
     def get_texts(self, lang):
         texts = {
@@ -54,12 +67,13 @@ class TranslatorApp:
                 'origin_language_label': "Мова оригіналу:",
                 'translation_language_label': "Виберіть мову для перекладу:",
                 'translate_button': "Перекласти",
-                'dark_mode': "Темна тема",
                 'settings': "Налаштування",
                 'fullscreen': "Повноекранний режим",
                 'exit_fullscreen': "Вихід з повноекранного режиму",
                 'theme_label': "Виберіть тему:",
                 'language_label': "Виберіть мову інтерфейсу:",
+                'background_label': "Виберіть фон:",
+                'resolution_label': "Виберіть роздільну здатність:",
                 'translated_text': "Перекладений текст:",
                 'error': "Помилка",
                 'warning': "Попередження",
@@ -72,12 +86,13 @@ class TranslatorApp:
                 'origin_language_label': "Source language:",
                 'translation_language_label': "Select target language:",
                 'translate_button': "Translate",
-                'dark_mode': "Dark mode",
                 'settings': "Settings",
                 'fullscreen': "Fullscreen mode",
                 'exit_fullscreen': "Exit fullscreen mode",
                 'theme_label': "Select theme:",
                 'language_label': "Select interface language:",
+                'background_label': "Select background:",
+                'resolution_label': "Select resolution:",
                 'translated_text': "Translated text:",
                 'error': "Error",
                 'warning': "Warning",
@@ -88,59 +103,87 @@ class TranslatorApp:
         return texts[lang]
 
     def create_widgets(self):
-        self.input_label = ttk.Label(self.root, text=self.texts['input_label'], style='Subtitle.TLabel')
-        self.input_label.pack(pady=(20, 5))
-        
-        self.text_entry = ttk.Entry(self.root, width=50, font=('Arial', 12))
-        self.text_entry.pack()
+        # Створення Canvas для фону
+        self.canvas = tk.Canvas(self.root, width=self.width, height=self.height)
+        self.canvas.pack(fill=tk.BOTH, expand=True)
+
+        # Створення фону
+        self.bg_image = None
+        self.bg_image_id = None
+
+        # Створення фреймів
+        self.main_frame = ttk.Frame(self.canvas, padding=10)
+        self.main_frame.pack(expand=True, fill=tk.BOTH, padx=20, pady=20)
+
+        # Створення вкладок
+        self.notebook = ttk.Notebook(self.main_frame)
+        self.notebook.grid(row=0, column=0, sticky='nsew')
+
+        self.settings_tab = ttk.Frame(self.notebook)
+        self.notebook.add(self.settings_tab, text=self.texts['settings'])
+
+        self.translation_tab = ttk.Frame(self.notebook)
+        self.notebook.add(self.translation_tab, text="Переклад")
+
+        self.create_translation_widgets()
+        self.create_settings_widgets()
+
+    def create_translation_widgets(self):
+        # Елементи для перекладу
+        self.input_label = ttk.Label(self.translation_tab, text=self.texts['input_label'], font=('Arial', 12, 'bold'))
+        self.input_label.grid(row=0, column=0, columnspan=2, pady=(10, 5), sticky='w')
+
+        self.text_entry = ttk.Entry(self.translation_tab, width=50, font=('Arial', 12))
+        self.text_entry.grid(row=1, column=0, columnspan=2, pady=5)
         self.text_entry.bind('<Return>', self.translate_text)
 
-        self.origin_language_label = ttk.Label(self.root, text=self.texts['origin_language_label'], style='Subtitle.TLabel')
-        self.origin_language_label.pack(pady=(20, 5))
-        
-        self.origin_language = ttk.Combobox(self.root, values=list(self.languages.keys()), font=('Arial', 12))
-        self.origin_language.pack()
+        self.origin_language_label = ttk.Label(self.translation_tab, text=self.texts['origin_language_label'], font=('Arial', 12, 'bold'))
+        self.origin_language_label.grid(row=2, column=0, pady=(10, 5), sticky='w')
 
-        self.translation_language_label = ttk.Label(self.root, text=self.texts['translation_language_label'], style='Subtitle.TLabel')
-        self.translation_language_label.pack(pady=(20, 5))
-        
-        self.translation_language = ttk.Combobox(self.root, values=list(self.languages.keys()), font=('Arial', 12))
-        self.translation_language.pack()
+        self.origin_language = ttk.Combobox(self.translation_tab, values=list(self.languages.keys()), font=('Arial', 12))
+        self.origin_language.grid(row=2, column=1, pady=(10, 5))
 
-        self.translate_button = ttk.Button(self.root, text=self.texts['translate_button'], command=self.translate_text, style='Accent.TButton')
-        self.translate_button.pack(pady=20)
-        
-        self.translation_label = ttk.Label(self.root, text="", style='Result.TLabel', wraplength=400, anchor='center')
-        self.translation_label.pack(pady=(20, 50))
-        
-        self.dark_mode_checkbutton = ttk.Checkbutton(self.root, text=self.texts['dark_mode'], variable=self.dark_mode, command=self.set_theme)
-        self.dark_mode_checkbutton.pack(pady=(10, 0))
+        self.translation_language_label = ttk.Label(self.translation_tab, text=self.texts['translation_language_label'], font=('Arial', 12, 'bold'))
+        self.translation_language_label.grid(row=3, column=0, pady=(10, 5), sticky='w')
 
-        # Меню
-        self.menubar = tk.Menu(self.root)
-        self.root.config(menu=self.menubar)
-        
-        self.view_menu = tk.Menu(self.menubar, tearoff=0)
-        self.menubar.add_cascade(label=self.texts['settings'], menu=self.view_menu)
-        self.view_menu.add_command(label=self.texts['fullscreen'], command=self.toggle_fullscreen)
-        self.view_menu.add_command(label=self.texts['exit_fullscreen'], command=self.quit_fullscreen)
-        
-        self.settings_menu = tk.Menu(self.view_menu, tearoff=0)
-        self.view_menu.add_cascade(label=self.texts['settings'], menu=self.settings_menu)
-        
-        self.theme_menu = tk.Menu(self.settings_menu, tearoff=0)
-        self.settings_menu.add_cascade(label=self.texts['theme_label'], menu=self.theme_menu)
-        for theme in self.themes:
-            self.theme_menu.add_radiobutton(label=theme, variable=self.current_theme, value=theme, command=self.set_theme)
+        self.translation_language = ttk.Combobox(self.translation_tab, values=list(self.languages.keys()), font=('Arial', 12))
+        self.translation_language.grid(row=3, column=1, pady=(10, 5))
 
-        self.language_menu = tk.Menu(self.settings_menu, tearoff=0)
-        self.settings_menu.add_cascade(label=self.texts['language_label'], menu=self.language_menu)
-        for lang in self.interface_languages:
-            self.language_menu.add_radiobutton(label=lang, variable=self.current_language, value=self.interface_languages[lang], command=self.change_language)
+        self.translate_button = ttk.Button(self.translation_tab, text=self.texts['translate_button'], command=self.translate_text)
+        self.translate_button.grid(row=4, column=0, columnspan=2, pady=15)
+
+        self.translation_label = ttk.Label(self.translation_tab, text="", wraplength=self.width - 60, anchor='center', font=('Arial', 12, 'italic'))
+        self.translation_label.grid(row=5, column=0, columnspan=2, pady=(15, 20))
+
+    def create_settings_widgets(self):
+        # Елементи для налаштувань
+        self.theme_label = ttk.Label(self.settings_tab, text=self.texts['theme_label'], font=('Arial', 12, 'bold'))
+        self.theme_label.grid(row=0, column=0, pady=(10, 5), sticky='w')
+
+        self.theme_combobox = ttk.Combobox(self.settings_tab, values=self.themes, textvariable=self.current_theme, font=('Arial', 12))
+        self.theme_combobox.grid(row=0, column=1, pady=(10, 5))
+        self.theme_combobox.bind('<<ComboboxSelected>>', lambda e: self.set_theme())
+
+        self.language_label = ttk.Label(self.settings_tab, text=self.texts['language_label'], font=('Arial', 12, 'bold'))
+        self.language_label.grid(row=1, column=0, pady=(10, 5), sticky='w')
+
+        self.language_combobox = ttk.Combobox(self.settings_tab, values=list(self.interface_languages.keys()), textvariable=self.current_language, font=('Arial', 12))
+        self.language_combobox.grid(row=1, column=1, pady=(10, 5))
+        self.language_combobox.bind('<<ComboboxSelected>>', lambda e: self.change_language())
+
+        self.background_button = ttk.Button(self.settings_tab, text=self.texts['background_label'], command=self.set_background)
+        self.background_button.grid(row=2, column=0, columnspan=2, pady=(10, 5))
+
+        self.resolution_label = ttk.Label(self.settings_tab, text=self.texts['resolution_label'], font=('Arial', 12, 'bold'))
+        self.resolution_label.grid(row=3, column=0, pady=(10, 5), sticky='w')
+
+        self.resolution_combobox = ttk.Combobox(self.settings_tab, values=list(self.resolutions.keys()), textvariable=self.current_resolution, font=('Arial', 12))
+        self.resolution_combobox.grid(row=3, column=1, pady=(10, 5))
+        self.resolution_combobox.bind('<<ComboboxSelected>>', lambda e: self.set_resolution())
 
     def set_theme(self):
         self.style.theme_use(self.current_theme.get())
-        self.root.configure(bg=self.style.lookup(f'TButton.{self.current_theme.get()}', 'background'))
+        self.canvas.config(bg=self.style.lookup(f'TButton.{self.current_theme.get()}', 'background'))
 
     def change_language(self):
         self.texts = self.get_texts(self.current_language.get())
@@ -152,14 +195,11 @@ class TranslatorApp:
         self.origin_language_label.config(text=self.texts['origin_language_label'])
         self.translation_language_label.config(text=self.texts['translation_language_label'])
         self.translate_button.config(text=self.texts['translate_button'])
-        self.dark_mode_checkbutton.config(text=self.texts['dark_mode'])
+        self.background_button.config(text=self.texts['background_label'])
+        self.resolution_label.config(text=self.texts['resolution_label'])
         
-        self.menubar.entryconfig(1, label=self.texts['settings'])
-        self.view_menu.entryconfig(0, label=self.texts['fullscreen'])
-        self.view_menu.entryconfig(1, label=self.texts['exit_fullscreen'])
-        
-        self.settings_menu.entryconfig(0, label=self.texts['theme_label'])
-        self.settings_menu.entryconfig(1, label=self.texts['language_label'])
+        self.notebook.tab(0, text=self.texts['settings'])
+        self.notebook.tab(1, text="Переклад")
 
     def translate_text(self, event=None):
         text = self.text_entry.get().strip()
@@ -177,6 +217,26 @@ class TranslatorApp:
                 messagebox.showerror(self.texts['error'], self.texts['error_message'])
         else:
             messagebox.showwarning(self.texts['warning'], self.texts['warning_message'])
+
+    def set_background(self):
+        file_path = filedialog.askopenfilename(filetypes=[("Image files", "*.png;*.jpg;*.jpeg;*.gif")])
+        if file_path:
+            image = Image.open(file_path)
+            image = image.resize((self.width, self.height), Image.Resampling.LANCZOS)
+            self.bg_image = ImageTk.PhotoImage(image)
+            
+            if self.bg_image_id:
+                self.canvas.delete(self.bg_image_id)
+                
+            self.bg_image_id = self.canvas.create_image(0, 0, anchor=tk.NW, image=self.bg_image)
+            self.canvas.lower(self.bg_image_id)  # Ensure background is below other widgets
+
+    def set_resolution(self):
+        new_width, new_height = self.resolutions[self.current_resolution.get()]
+        self.width, self.height = new_width, new_height
+        self.canvas.config(width=self.width, height=self.height)
+        self.set_background()  # Перемалювати фон для нових розмірів
+        self.update_texts()  # Оновити текстові віджети
 
     def toggle_fullscreen(self):
         self.root.attributes('-fullscreen', True)
