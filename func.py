@@ -1,6 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, messagebox, filedialog
-from PIL import Image, ImageTk
+from tkinter import ttk, messagebox
 import requests
 
 class TranslatorApp:
@@ -61,7 +60,6 @@ class TranslatorApp:
                 'exit_fullscreen': "Вихід з повноекранного режиму",
                 'theme_label': "Виберіть тему:",
                 'language_label': "Виберіть мову інтерфейсу:",
-                'background_label': "Виберіть фон:",
                 'translated_text': "Перекладений текст:",
                 'error': "Помилка",
                 'warning': "Попередження",
@@ -79,7 +77,6 @@ class TranslatorApp:
                 'exit_fullscreen': "Exit fullscreen mode",
                 'theme_label': "Select theme:",
                 'language_label': "Select interface language:",
-                'background_label': "Select background:",
                 'translated_text': "Translated text:",
                 'error': "Error",
                 'warning': "Warning",
@@ -93,10 +90,6 @@ class TranslatorApp:
         # Створення Canvas для фону
         self.canvas = tk.Canvas(self.root)
         self.canvas.pack(fill=tk.BOTH, expand=True)
-
-        # Створення фону
-        self.bg_image = None
-        self.bg_image_id = None
 
         # Створення фреймів
         self.main_frame = ttk.Frame(self.canvas, padding=10)
@@ -158,10 +151,7 @@ class TranslatorApp:
         self.language_combobox.grid(row=1, column=1, pady=(10, 5))
         self.language_combobox.bind('<<ComboboxSelected>>', lambda e: self.change_language())
 
-        self.background_button = ttk.Button(self.settings_tab, text=self.texts['background_label'], command=self.set_background)
-        self.background_button.grid(row=2, column=0, columnspan=2, pady=(10, 5))
-
-        # Видалено комбобокс для роздільної здатності
+        # Видалено кнопку для вибору фону
 
     def set_theme(self):
         self.style.theme_use(self.current_theme.get())
@@ -179,7 +169,6 @@ class TranslatorApp:
         self.origin_language_label.config(text=self.texts['origin_language_label'])
         self.translation_language_label.config(text=self.texts['translation_language_label'])
         self.translate_button.config(text=self.texts['translate_button'])
-        self.background_button.config(text=self.texts['background_label'])
         self.theme_label.config(text=self.texts['theme_label'])
         self.language_label.config(text=self.texts['language_label'])
 
@@ -236,19 +225,6 @@ class TranslatorApp:
                 messagebox.showerror(self.texts['error'], self.texts['error_message'])
         else:
             messagebox.showwarning(self.texts['warning'], self.texts['warning_message'])
-
-    def set_background(self):
-        file_path = filedialog.askopenfilename(filetypes=[("Image files", "*.png;*.jpg;*.jpeg;*.gif")])
-        if file_path:
-            image = Image.open(file_path)
-            image = image.resize((self.root.winfo_width(), self.root.winfo_height()), Image.Resampling.LANCZOS)
-            self.bg_image = ImageTk.PhotoImage(image)
-            
-            if self.bg_image_id:
-                self.canvas.delete(self.bg_image_id)
-                
-            self.bg_image_id = self.canvas.create_image(0, 0, anchor=tk.NW, image=self.bg_image)
-            self.canvas.lower(self.bg_image_id)  # Ensure background is below other widgets
 
     def toggle_fullscreen(self):
         self.root.attributes('-fullscreen', True)
