@@ -12,21 +12,10 @@ class TranslatorApp:
         self.themes = ['clam', 'alt', 'default', 'classic', 'vista', 'xpnative']
         self.current_theme = tk.StringVar(value=self.themes[0])
 
-        # Роздільні здатності
-        self.resolutions = {
-            '800x600': (800, 600),
-            '1024x768': (1024, 768),
-            '1280x800': (1280, 800),
-            '1366x768': (1366, 768),
-            '1920x1080': (1920, 1080)
-        }
-        self.current_resolution = tk.StringVar(value='800x600')
-        self.width, self.height = self.resolutions[self.current_resolution.get()]
-
         # Мови інтерфейсу
         self.interface_languages = {
             'Українська': 'uk',
-            'Англійська': 'en'
+            'English': 'en'
         }
         self.current_language = tk.StringVar(value='uk')
         self.texts = self.get_texts('uk')
@@ -37,6 +26,7 @@ class TranslatorApp:
 
         # Мови перекладу
         self.languages = {
+            'Українська': 'uk',
             'Англійська': 'en',
             'Іспанська': 'es',
             'Французька': 'fr',
@@ -46,7 +36,6 @@ class TranslatorApp:
             'Російська': 'ru',
             'Арабська': 'ar',
             'Гінді': 'hi',
-            'Українська': 'uk',
             'Португальська': 'pt',
         }
 
@@ -73,7 +62,6 @@ class TranslatorApp:
                 'theme_label': "Виберіть тему:",
                 'language_label': "Виберіть мову інтерфейсу:",
                 'background_label': "Виберіть фон:",
-                'resolution_label': "Виберіть роздільну здатність:",
                 'translated_text': "Перекладений текст:",
                 'error': "Помилка",
                 'warning': "Попередження",
@@ -92,7 +80,6 @@ class TranslatorApp:
                 'theme_label': "Select theme:",
                 'language_label': "Select interface language:",
                 'background_label': "Select background:",
-                'resolution_label': "Select resolution:",
                 'translated_text': "Translated text:",
                 'error': "Error",
                 'warning': "Warning",
@@ -104,7 +91,7 @@ class TranslatorApp:
 
     def create_widgets(self):
         # Створення Canvas для фону
-        self.canvas = tk.Canvas(self.root, width=self.width, height=self.height)
+        self.canvas = tk.Canvas(self.root)
         self.canvas.pack(fill=tk.BOTH, expand=True)
 
         # Створення фону
@@ -152,7 +139,7 @@ class TranslatorApp:
         self.translate_button = ttk.Button(self.translation_tab, text=self.texts['translate_button'], command=self.translate_text)
         self.translate_button.grid(row=4, column=0, columnspan=2, pady=15)
 
-        self.translation_label = ttk.Label(self.translation_tab, text="", wraplength=self.width - 60, anchor='center', font=('Arial', 12, 'italic'))
+        self.translation_label = ttk.Label(self.translation_tab, text="", wraplength=self.canvas.winfo_width() - 60, anchor='center', font=('Arial', 12, 'italic'))
         self.translation_label.grid(row=5, column=0, columnspan=2, pady=(15, 20))
 
     def create_settings_widgets(self):
@@ -174,20 +161,17 @@ class TranslatorApp:
         self.background_button = ttk.Button(self.settings_tab, text=self.texts['background_label'], command=self.set_background)
         self.background_button.grid(row=2, column=0, columnspan=2, pady=(10, 5))
 
-        self.resolution_label = ttk.Label(self.settings_tab, text=self.texts['resolution_label'], font=('Arial', 12, 'bold'))
-        self.resolution_label.grid(row=3, column=0, pady=(10, 5), sticky='w')
-
-        self.resolution_combobox = ttk.Combobox(self.settings_tab, values=list(self.resolutions.keys()), textvariable=self.current_resolution, font=('Arial', 12))
-        self.resolution_combobox.grid(row=3, column=1, pady=(10, 5))
-        self.resolution_combobox.bind('<<ComboboxSelected>>', lambda e: self.set_resolution())
+        # Видалено комбобокс для роздільної здатності
 
     def set_theme(self):
         self.style.theme_use(self.current_theme.get())
         self.canvas.config(bg=self.style.lookup(f'TButton.{self.current_theme.get()}', 'background'))
 
     def change_language(self):
-        self.texts = self.get_texts(self.current_language.get())
+        lang_code = self.interface_languages[self.current_language.get()]
+        self.texts = self.get_texts(lang_code)
         self.update_texts()
+        self.update_language_comboboxes()
 
     def update_texts(self):
         self.root.title(self.texts['title'])
@@ -196,10 +180,45 @@ class TranslatorApp:
         self.translation_language_label.config(text=self.texts['translation_language_label'])
         self.translate_button.config(text=self.texts['translate_button'])
         self.background_button.config(text=self.texts['background_label'])
-        self.resolution_label.config(text=self.texts['resolution_label'])
-        
+        self.theme_label.config(text=self.texts['theme_label'])
+        self.language_label.config(text=self.texts['language_label'])
+
         self.notebook.tab(0, text=self.texts['settings'])
-        self.notebook.tab(1, text="Переклад")
+        self.notebook.tab(1, text=self.texts['title'])
+
+    def update_language_comboboxes(self):
+        # Оновлення назв мов у комбобоксах
+        if self.current_language.get() == 'English':
+            self.languages = {
+                'Ukrainian': 'uk',
+                'English': 'en',
+                'Spanish': 'es',
+                'French': 'fr',
+                'German': 'de',
+                'Chinese (Simplified)': 'zh-CN',
+                'Japanese': 'ja',
+                'Russian': 'ru',
+                'Arabic': 'ar',
+                'Hindi': 'hi',
+                'Portuguese': 'pt',
+            }
+        else:
+            self.languages = {
+                'Українська': 'uk',
+                'Англійська': 'en',
+                'Іспанська': 'es',
+                'Французька': 'fr',
+                'Німецька': 'de',
+                'Китайська (спрощена)': 'zh-CN',
+                'Японська': 'ja',
+                'Російська': 'ru',
+                'Арабська': 'ar',
+                'Гінді': 'hi',
+                'Португальська': 'pt',
+            }
+
+        self.origin_language.config(values=list(self.languages.keys()))
+        self.translation_language.config(values=list(self.languages.keys()))
 
     def translate_text(self, event=None):
         text = self.text_entry.get().strip()
@@ -222,7 +241,7 @@ class TranslatorApp:
         file_path = filedialog.askopenfilename(filetypes=[("Image files", "*.png;*.jpg;*.jpeg;*.gif")])
         if file_path:
             image = Image.open(file_path)
-            image = image.resize((self.width, self.height), Image.Resampling.LANCZOS)
+            image = image.resize((self.root.winfo_width(), self.root.winfo_height()), Image.Resampling.LANCZOS)
             self.bg_image = ImageTk.PhotoImage(image)
             
             if self.bg_image_id:
@@ -230,13 +249,6 @@ class TranslatorApp:
                 
             self.bg_image_id = self.canvas.create_image(0, 0, anchor=tk.NW, image=self.bg_image)
             self.canvas.lower(self.bg_image_id)  # Ensure background is below other widgets
-
-    def set_resolution(self):
-        new_width, new_height = self.resolutions[self.current_resolution.get()]
-        self.width, self.height = new_width, new_height
-        self.canvas.config(width=self.width, height=self.height)
-        self.set_background()  # Перемалювати фон для нових розмірів
-        self.update_texts()  # Оновити текстові віджети
 
     def toggle_fullscreen(self):
         self.root.attributes('-fullscreen', True)
