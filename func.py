@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 import requests
+import json
 
 class TranslatorApp:
     def __init__(self, root):
@@ -38,6 +39,9 @@ class TranslatorApp:
             'Португальська': 'pt',
         }
 
+        # Завантаження словника
+        self.load_dictionary()
+
         # Віджети
         self.create_widgets()
 
@@ -46,6 +50,14 @@ class TranslatorApp:
 
         # Вибрати вкладку перекладу при запуску
         self.notebook.select(self.translation_tab)
+
+    def load_dictionary(self):
+        try:
+            with open('dictionary.json', 'r', encoding='utf-8') as file:
+                self.dictionary = json.load(file)
+        except FileNotFoundError:
+            messagebox.showerror("Помилка", "Файл словника не знайдено.")
+            self.dictionary = {}
 
     def get_texts(self, lang):
         texts = {
@@ -213,16 +225,22 @@ class TranslatorApp:
         text = self.text_entry.get().strip()
         origin_lang = self.languages.get(self.origin_language.get())
         translation_lang = self.languages.get(self.translation_language.get())
-        
+
         if text and origin_lang and translation_lang:
-            url = f"https://translate.googleapis.com/translate_a/single?client=gtx&sl={origin_lang}&tl={translation_lang}&dt=t&q={text}"
-            response = requests.get(url)
-            
-            if response.status_code == 200:
-                translation = response.json()[0][0][0]
+            # Перевірка словника
+            if origin_lang in self.dictionary and text in self.dictionary[origin_lang]:
+                translation = self.dictionary[origin_lang][text]
                 self.translation_label.config(text=f"{self.texts['translated_text']}\n{translation}")
             else:
-                messagebox.showerror(self.texts['error'], self.texts['error_message'])
+                # Якщо тексту немає в словнику, використовуємо Google Translate API
+                url = f"https://translate.googleapis.com/translate_a/single?client=gtx&sl={origin_lang}&tl={translation_lang}&dt=t&q={text}"
+                response = requests.get(url)
+
+                if response.status_code == 200:
+                    translation = response.json()[0][0][0]
+                    self.translation_label.config(text=f"{self.texts['translated_text']}\n{translation}")
+                else:
+                    messagebox.showerror(self.texts['error'], self.texts['error_message'])
         else:
             messagebox.showwarning(self.texts['warning'], self.texts['warning_message'])
 

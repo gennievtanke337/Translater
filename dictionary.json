@@ -1,0 +1,20 @@
+{
+    "uk": {
+        "hello": "привіт",
+        "goodbye": "до побачення",
+        "bulba": "бульба"
+    },
+    "en": {
+        "hello": "hello",
+        "goodbye": "goodbye",
+        "бульба": "potato"
+    },
+    "es": {
+        "hello": "hola",
+        "goodbye": "adiós"
+    },
+    "fr": {
+        "hello": "bonjour",
+        "goodbye": "au revoir"
+    }
+}
