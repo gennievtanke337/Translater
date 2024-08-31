@@ -147,7 +147,7 @@ class TranslatorApp:
         self.translation_label = ttk.Label(self.translation_tab, text="", wraplength=self.canvas.winfo_width() - 60, anchor='center', font=('Arial', 12, 'italic'))
         self.translation_label.grid(row=5, column=0, columnspan=2, pady=(15, 20))
 
-    def create_settings_widgets(self):
+    def create_settings_widgets(self): 
         # Елементи для налаштувань
         self.theme_label = ttk.Label(self.settings_tab, text=self.texts['theme_label'], font=('Arial', 12, 'bold'))
         self.theme_label.grid(row=0, column=0, pady=(10, 5), sticky='w')
@@ -163,7 +163,7 @@ class TranslatorApp:
         self.language_combobox.grid(row=1, column=1, pady=(10, 5))
         self.language_combobox.bind('<<ComboboxSelected>>', lambda e: self.change_language())
 
-        # Видалено кнопку для вибору фону
+        
 
     def set_theme(self):
         self.style.theme_use(self.current_theme.get())
